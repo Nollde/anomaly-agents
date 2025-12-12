@@ -231,3 +231,57 @@ class VisualizeFeatures(DataMixin, RegionMixin, law.Task):
         plot_mjj_distribution(
             bg_data, sig_data, self.output()["mjj"].path, self.sr_low, self.sr_high
         )
+
+
+class PreprocessFeatures(DataMixin, RegionMixin, law.Task):
+    """
+    Task 2.4: Implement feature preprocessing.
+
+    Fits a feature scaler on sideband background data (CATHODE requirement:
+    learn normalization from background only, not signal-contaminated SR).
+    """
+
+    def requires(self):
+        return LoadAndValidateData.req(self)
+
+    def output(self):
+        return law.LocalFileTarget("results/models/feature_scaler.pkl")
+
+    def run(self):
+        from src.data.loader import load_data, apply_region_cut, get_features
+        from src.data.preprocessing import FeatureScaler, preprocess_data
+
+        # Load dataset
+        data_path = f"{self.data_dir}/background.h5"
+        bg_data, sig_data = load_data(data_path)
+
+        # Get sideband background data for fitting scaler
+        # IMPORTANT: Fit only on background in sideband to avoid signal contamination
+        bg_sb_mask = apply_region_cut(
+            bg_data, self.mjj_low, self.mjj_high, self.sr_low, self.sr_high, False
+        )
+
+        # Extract SB background data
+        bg_sb = {key: val[bg_sb_mask] for key, val in bg_data.items()}
+
+        # Define features (without mJJ for now - mass is handled separately)
+        feature_names = ["mJ1", "delta_mJ", "tau21_J1", "tau21_J2"]
+
+        print(f"\nFitting feature scaler on sideband background...")
+        print(f"  Sideband background events: {len(bg_sb['mJJ']):,}")
+        print(f"  Features: {feature_names}")
+
+        # Fit scaler on SB background
+        X_sb = get_features(bg_sb, include_mass=False)
+        scaler = FeatureScaler()
+        scaler.fit(X_sb, feature_names)
+
+        # Print scaling parameters
+        print(f"\nScaling parameters:")
+        for i, name in enumerate(feature_names):
+            print(f"  {name:12s}: mean={scaler.mean_[i]:8.3f}, std={scaler.std_[i]:8.3f}")
+
+        # Save scaler
+        self.output().parent.touch()
+        scaler.save(self.output().path)
+        print(f"\nSaved scaler to {self.output().path}")
