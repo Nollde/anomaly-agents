@@ -61,34 +61,14 @@ This document contains all tasks needed to reproduce the CATHODE paper results, 
 **Requirements**:
 - Download the dataset from Zenodo (doi: 10.5281/zenodo.4536377)
 - Load both background (QCD dijet) and signal (W' → XY) events
-- Verify the dataset contains 1,000,000 background and 100,000 signal events
-- Extract particle-level information (pT, η, φ) for up to 700 particles per event
+- Verify the number of available signal and background events
+- Extract the available information per event
 
 **Deliverable**: A law task that downloads and loads the data, with basic statistics printed
 
 ---
 
-### Task 2.2: Reconstruct Jets and Event Features
-**Difficulty**: MSc
-**Weight**: 20 points
-**Description**: Reconstruct large-radius jets and compute the 5 auxiliary features used in the analysis.
-
-**Requirements**:
-- Cluster particles into R=1 anti-kT jets using FastJet or equivalent
-- Apply pT > 1.2 TeV trigger requirement
-- Compute the 5 features for each event:
-  - mJ1: mass of the lighter jet
-  - ∆mJ: difference in jet masses (mJ2 - mJ1)
-  - τ21^J1: n-subjettiness ratio for jet 1
-  - τ21^J2: n-subjettiness ratio for jet 2
-  - mJJ: invariant mass of the dijet system
-- Store features in a structured format (e.g., pandas DataFrame or HDF5)
-
-**Deliverable**: A law task that produces a file with all reconstructed features
-
----
-
-### Task 2.3: Visualize Feature Distributions
+### Task 2.2: Visualize Feature Distributions
 **Difficulty**: MSc
 **Weight**: 15 points
 **Description**: Create plots of the feature distributions matching Figure 3 and Figure 4 from the paper.
@@ -104,7 +84,7 @@ This document contains all tasks needed to reproduce the CATHODE paper results, 
 
 ---
 
-### Task 2.4: Define Signal and Sideband Regions
+### Task 2.3: Define Signal and Sideband Regions
 **Difficulty**: MSc
 **Weight**: 10 points
 **Description**: Split the dataset into signal region (SR) and sideband (SB) based on mJJ.
@@ -113,13 +93,13 @@ This document contains all tasks needed to reproduce the CATHODE paper results, 
 - Define SR: mJJ ∈ [3.3, 3.7] TeV
 - Define SB: mJJ ∉ [3.3, 3.7] TeV (using full range [1.5, 5.5] TeV)
 - Count events in SR vs SB for background and signal
-- Verify ~121k background and ~772 signal events in SR (matching paper)
+- Verify background and signal events in SR
 
 **Deliverable**: Code that splits data into SR/SB with event counts validation
 
 ---
 
-### Task 2.5: Feature Preprocessing
+### Task 2.4: Feature Preprocessing
 **Difficulty**: MSc
 **Weight**: 10 points
 **Description**: Implement the feature transformations used in CATHODE.
@@ -246,7 +226,7 @@ This document contains all tasks needed to reproduce the CATHODE paper results, 
 **Requirements**:
 - Implement ROC curve calculation (TPR vs FPR)
 - Implement SIC calculation: SIC = S/√B as function of signal efficiency
-- Compute on held-out test set (340k background + 20k signal)
+- Compute on held-out test set
 - Generate curves with uncertainty bands (from 10 independent trainings)
 - Compare CATHODE, CWoLa, ANODE, idealized detector
 
@@ -260,8 +240,7 @@ This document contains all tasks needed to reproduce the CATHODE paper results, 
 **Description**: Reproduce the main performance comparison at S/B = 0.6%.
 
 **Requirements**:
-- Train all methods (CATHODE, CWoLa, ANODE) on 1000 signal + 1M background
-- Verify SR contains 772 signal + 121k background (S/B = 0.6%, S/√B = 2.2)
+- Train all methods (CATHODE, CWoLa, ANODE) on 1000 signal + all availble background
 - Generate ROC curves (Figure 6 left)
 - Generate SIC curves (Figure 6 right)
 - Verify CATHODE achieves max SIC ~14

@@ -106,10 +106,15 @@ During the initial project setup, the following clarifications were provided:
 
 ## Additional Guidance after Initial Setup
 
-The data you will be working with can be found at the following URLs:
-- signal_url = "https://zenodo.org/records/11188685/files/events_anomalydetection_Z_XY_qq_parametric.h5"
-- background_url = "https://zenodo.org/records/4536377/files/events_anomalydetection_v2.features.h5"
-The jet clustering has already been performed and the high-level features are available.
+Edits in the `instructions.md`:
+- The data you will be working with can be found at the following URLs:
+  - signal_url = "https://zenodo.org/records/11188685/files/events_anomalydetection_Z_XY_qq_parametric.h5"
+  - background_url = "https://zenodo.org/records/4536377/files/events_anomalydetection_v2.features.h5"
+- The jet clustering has already been performed and the high-level features are available. The signal does not come from the original publication but has been produced afterwards, chose a particular signal mass point to perform the studies, communicate to us which one you chose and why. 
+- Verify the number of available signal and background events\
+- Extract the available information per event
+- Take out task to reconstruct jets
+- removed All event numbers (as they might change)
 
 ## Project Structure
 
