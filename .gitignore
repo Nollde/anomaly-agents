@@ -31,7 +31,6 @@ wheels/
 *.pt
 
 # Data files
-data/
 *.h5
 *.hdf5
 *.root
