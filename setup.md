@@ -94,6 +94,16 @@ We will give instructions to the agent in the form of a markdown file named `ins
 
 - **Communication Style**: Be very friendly and sympathetic, but also be efficient in your communication
 
+## Additional Guidance from Initial Setup
+
+During the initial project setup, the following clarifications were provided:
+
+- **Pitch Slide**: Keep presentation materials concise and focused on a single slide with bullet points (8-10 words max per point). Use marketing language to make the project appealing. The pitch slide should NOT be committed to git.
+
+- **Documentation Focus**: The core documentation files (README, setup, instructions, tasks, notes) form the backbone of the project and should be maintained in git. Personal presentation materials remain separate.
+
+- **Primary Target**: The main hackathon goal is to reproduce **Figure 7 (left)** - the dependence of Maximum Significance Improvement on signal-to-background ratio. This is the critical deliverable.
+
 ## Project Structure
 
 ```
