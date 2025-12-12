@@ -104,6 +104,13 @@ During the initial project setup, the following clarifications were provided:
 
 - **Primary Target**: The main hackathon goal is to reproduce **Figure 7 (left)** - the dependence of Maximum Significance Improvement on signal-to-background ratio. This is the critical deliverable.
 
+## Additional Guidance after Initial Setup
+
+The data you will be working with can be found at the following URLs:
+- signal_url = "https://zenodo.org/records/11188685/files/events_anomalydetection_Z_XY_qq_parametric.h5"
+- background_url = "https://zenodo.org/records/4536377/files/events_anomalydetection_v2.features.h5"
+The jet clustering has already been performed and the high-level features are available.
+
 ## Project Structure
 
 ```
