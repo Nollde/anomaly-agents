@@ -59,11 +59,3 @@ outputs/
 # OS
 .DS_Store
 Thumbs.db
-
-# Personal notes (not committed)
-_.md
-
-# Large files
-*.pdf
-source/*.pdf
-source/**/*.pdf
