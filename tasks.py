@@ -69,11 +69,9 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
     """
     Task 2.1 (continued): Load and validate the downloaded datasets.
 
-    Loads both datasets, prints summary statistics, and validates event counts.
+    Loads dataset with label column (0=background, 1=signal), prints summary statistics,
+    and validates event counts.
     """
-
-    mX = luigi.FloatParameter(default=500.0, description="Signal X mass in GeV")
-    mY = luigi.FloatParameter(default=100.0, description="Signal Y mass in GeV")
 
     def requires(self):
         return DownloadData.req(self)
@@ -83,18 +81,11 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
 
     def run(self):
         import numpy as np
-        from src.data.loader import (
-            load_background_data,
-            load_signal_data,
-            apply_region_cut,
-        )
+        from src.data.loader import load_data, apply_region_cut
 
-        # Load datasets (paths are fixed based on data_dir)
-        bg_path = f"{self.data_dir}/background.h5"
-        sig_path = f"{self.data_dir}/signal.h5"
-
-        bg_data = load_background_data(bg_path)
-        sig_data = load_signal_data(sig_path, mX=self.mX, mY=self.mY)
+        # Load dataset (contains both background and signal with label column)
+        data_path = f"{self.data_dir}/background.h5"
+        bg_data, sig_data = load_data(data_path)
 
         # Validate and print statistics
         stats = []
@@ -103,9 +94,10 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
         stats.append("=" * 80)
         stats.append("")
 
-        # Background statistics
-        stats.append(f"Background Dataset: {bg_path}")
-        stats.append(f"  Total events: {len(bg_data['mJJ']):,}")
+        # Dataset statistics
+        stats.append(f"Dataset: {data_path}")
+        stats.append(f"  Total background events (label=0): {len(bg_data['mJJ']):,}")
+        stats.append(f"  Total signal events (label=1): {len(sig_data['mJJ']):,}")
 
         # Apply region cuts
         bg_sr_mask = apply_region_cut(
@@ -125,15 +117,13 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
             signal_region=False,
         )
 
-        stats.append(f"  Events in SR [{self.sr_low}, {self.sr_high}] TeV: {bg_sr_mask.sum():,}")
-        stats.append(f"  Events in SB: {bg_sb_mask.sum():,}")
+        stats.append(
+            f"  Background events in SR [{self.sr_low}, {self.sr_high}] TeV: {bg_sr_mask.sum():,}"
+        )
+        stats.append(f"  Background events in SB: {bg_sb_mask.sum():,}")
         stats.append("")
 
-        # Signal statistics
-        stats.append(f"Signal Dataset: {sig_path}")
-        stats.append(f"  Mass point: mX = {self.mX} GeV, mY = {self.mY} GeV")
-        stats.append(f"  Total events: {len(sig_data['mJJ']):,}")
-
+        # Signal region statistics
         sig_sr_mask = apply_region_cut(
             sig_data,
             self.mjj_low,
@@ -142,7 +132,11 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
             self.sr_high,
             signal_region=True,
         )
-        stats.append(f"  Events in SR: {sig_sr_mask.sum():,}")
+        stats.append(f"  Signal events in SR: {sig_sr_mask.sum():,}")
+
+        # Compute S/B ratio
+        s_over_b = sig_sr_mask.sum() / bg_sr_mask.sum() * 100 if bg_sr_mask.sum() > 0 else 0
+        stats.append(f"  S/B ratio in SR: {s_over_b:.3f}%")
         stats.append("")
 
         # Feature ranges
@@ -159,8 +153,12 @@ class LoadAndValidateData(DataMixin, RegionMixin, law.Task):
         stats.append("Comparison with Paper Benchmark (S/B = 0.6%):")
         stats.append("  Paper: 1M background total, 121,352 in SR, 1k signal, 772 in SR")
         stats.append(
-            f"  Our data: {len(bg_data['mJJ']):,} background total, " f"{bg_sr_mask.sum():,} in SR"
+            f"  Our data: {len(bg_data['mJJ']):,} background, {len(sig_data['mJJ']):,} signal total"
         )
+        stats.append(
+            f"           {bg_sr_mask.sum():,} background in SR, {sig_sr_mask.sum():,} signal in SR"
+        )
+        stats.append(f"           S/B = {s_over_b:.3f}%")
         stats.append("")
 
         stats_text = "\n".join(stats)
@@ -180,9 +178,6 @@ class VisualizeFeatures(DataMixin, RegionMixin, law.Task):
     similar to Figures 3 and 4 in the CATHODE paper.
     """
 
-    mX = luigi.FloatParameter(default=500.0, description="Signal X mass in GeV")
-    mY = luigi.FloatParameter(default=100.0, description="Signal Y mass in GeV")
-
     def requires(self):
         return LoadAndValidateData.req(self)
 
@@ -193,15 +188,12 @@ class VisualizeFeatures(DataMixin, RegionMixin, law.Task):
         }
 
     def run(self):
-        from src.data.loader import load_background_data, load_signal_data, apply_region_cut
+        from src.data.loader import load_data, apply_region_cut
         from src.utils.plotting import plot_feature_distributions, plot_mjj_distribution
 
-        # Load datasets
-        bg_path = f"{self.data_dir}/background.h5"
-        sig_path = f"{self.data_dir}/signal.h5"
-
-        bg_data = load_background_data(bg_path)
-        sig_data = load_signal_data(sig_path, mX=self.mX, mY=self.mY)
+        # Load dataset (contains both background and signal with label column)
+        data_path = f"{self.data_dir}/background.h5"
+        bg_data, sig_data = load_data(data_path)
 
         # Apply region cuts to get SR data
         bg_sr_mask = apply_region_cut(

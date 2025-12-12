@@ -36,20 +36,51 @@ def download_file(url: str, output_path: str, force: bool = False) -> None:
     print(f"Download complete: {output_path}")
 
 
-def load_background_data(file_path: str) -> Dict[str, np.ndarray]:
+def load_data(file_path: str) -> Tuple[Dict[str, np.ndarray], Dict[str, np.ndarray]]:
     """
-    Load background dataset from HDF5 file and compute high-level features.
+    Load dataset from HDF5 file and separate into background and signal.
+
+    The file contains a 'label' column where 0=background and 1=signal.
 
     Args:
-        file_path: Path to background HDF5 file
+        file_path: Path to HDF5 file
+
+    Returns:
+        Tuple of (background_data, signal_data) dictionaries with feature arrays
+    """
+    print(f"Loading data from {file_path}...")
+    # Load pandas DataFrame from HDF5
+    df = pd.read_hdf(file_path, key="df")
+
+    # Check for label column
+    if "label" not in df.columns:
+        raise ValueError("Dataset must contain 'label' column (0=background, 1=signal)")
+
+    # Separate background and signal
+    bg_mask = df["label"] == 0
+    sig_mask = df["label"] == 1
+
+    print(f"Total events: {len(df):,}")
+    print(f"  Background (label=0): {bg_mask.sum():,}")
+    print(f"  Signal (label=1): {sig_mask.sum():,}")
+
+    # Process both datasets
+    bg_data = _process_events(df[bg_mask])
+    sig_data = _process_events(df[sig_mask])
+
+    return bg_data, sig_data
+
+
+def _process_events(df: pd.DataFrame) -> Dict[str, np.ndarray]:
+    """
+    Process event DataFrame and compute high-level features.
+
+    Args:
+        df: DataFrame with event data
 
     Returns:
         Dictionary with feature arrays
     """
-    print(f"Loading background data from {file_path}...")
-    # Load pandas DataFrame from HDF5
-    df = pd.read_hdf(file_path, key="df")
-
     # Extract 4-vectors for both jets
     pxj1, pyj1, pzj1, mj1 = (
         df["pxj1"].values,
@@ -96,92 +127,7 @@ def load_background_data(file_path: str) -> Dict[str, np.ndarray]:
     # Compute derived feature: jet mass difference
     data["delta_mJ"] = mJ2 - mJ1
 
-    print(f"Loaded {len(data['mJJ'])} background events")
-    print(f"  mJJ range: [{mJJ.min():.2f}, {mJJ.max():.2f}] TeV")
-    return data
-
-
-def load_signal_data(file_path: str, mX: float = 500.0, mY: float = 100.0) -> Dict[str, np.ndarray]:
-    """
-    Load signal dataset from parametric HDF5 file and compute high-level features.
-
-    Args:
-        file_path: Path to signal HDF5 file
-        mX: X particle mass in GeV (default 500)
-        mY: Y particle mass in GeV (default 100)
-
-    Returns:
-        Dictionary with feature arrays for selected mass point
-    """
-    print(f"Loading signal data from {file_path} (mX={mX} GeV, mY={mY} GeV)...")
-
-    # Load pandas DataFrame from HDF5 (signal file uses 'output' key, not 'df')
-    df = pd.read_hdf(file_path, key="output")
-
-    # Check if parametric (has mx and my columns - note lowercase in signal file)
-    if "mx" in df.columns and "my" in df.columns:
-        available_mX = np.unique(df["mx"].values)
-        available_mY = np.unique(df["my"].values)
-        print(f"Available mX values: {available_mX}")
-        print(f"Available mY values: {available_mY}")
-
-        # Select events matching the requested mass point
-        mask = (np.abs(df["mx"] - mX) < 1.0) & (np.abs(df["my"] - mY) < 1.0)
-        df = df[mask]
-        print(f"Selected {len(df)} events with mX={mX}, mY={mY}")
-
-    # Extract 4-vectors for both jets
-    pxj1, pyj1, pzj1, mj1 = (
-        df["pxj1"].values,
-        df["pyj1"].values,
-        df["pzj1"].values,
-        df["mj1"].values,
-    )
-    pxj2, pyj2, pzj2, mj2 = (
-        df["pxj2"].values,
-        df["pyj2"].values,
-        df["pzj2"].values,
-        df["mj2"].values,
-    )
-
-    # Compute energies
-    ej1 = np.sqrt(pxj1**2 + pyj1**2 + pzj1**2 + mj1**2)
-    ej2 = np.sqrt(pxj2**2 + pyj2**2 + pzj2**2 + mj2**2)
-
-    # Compute dijet 4-vector
-    px_jj = pxj1 + pxj2
-    py_jj = pyj1 + pyj2
-    pz_jj = pzj1 + pzj2
-    e_jj = ej1 + ej2
-
-    # Compute dijet invariant mass in TeV
-    mJJ = np.sqrt(e_jj**2 - px_jj**2 - py_jj**2 - pz_jj**2) / 1000.0  # Convert GeV to TeV
-
-    # Jet masses in GeV
-    mJ1 = mj1
-    mJ2 = mj2
-
-    # N-subjettiness ratios
-    tau21_J1 = df["tau2j1"].values / (df["tau1j1"].values + 1e-10)
-    tau21_J2 = df["tau2j2"].values / (df["tau1j2"].values + 1e-10)
-
-    data = {
-        "mJJ": mJJ,  # In TeV
-        "mJ1": mJ1,  # In GeV
-        "mJ2": mJ2,  # In GeV
-        "tau21_J1": tau21_J1,
-        "tau21_J2": tau21_J2,
-    }
-
-    # Store mass point info if available (using lowercase column names)
-    if "mx" in df.columns:
-        data["mX"] = df["mx"].values
-        data["mY"] = df["my"].values
-
-    # Compute derived feature: jet mass difference
-    data["delta_mJ"] = mJ2 - mJ1
-
-    print(f"Loaded {len(data['mJJ'])} signal events")
+    print(f"  Processed {len(data['mJJ']):,} events")
     print(f"  mJJ range: [{mJJ.min():.2f}, {mJJ.max():.2f}] TeV")
     return data
 
