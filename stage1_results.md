@@ -32,13 +32,19 @@
 
 ### Figure 7 Left - S/B Scan
 
+Looking at the actual Figure 7 (left) plot:
+
 | S/B Range | CATHODE Performance |
 |-----------|---------------------|
-| **S/B > 0.25%** | Maximum SIC > 10 |
-| **S/B ~ 0.25%** | Performance threshold where methods start to fail |
+| **S/B ~ 0.6% to ~0.3%** | Maximum SIC consistently > 10 (peaks at ~15-16) |
+| **S/B ~ 0.25%** | CATHODE is best performer; below this all methods fail to reach 3σ |
 | **S/B < 0.25%** | No method achieves 3σ significance |
 
-**Key Finding**: CATHODE maintains >10 SIC down to S/B ~ 0.25%, and saturates the idealized detector performance across the entire S/B range.
+**Key Finding**:
+- CATHODE maintains SIC > 10 approximately in the range S/B ~ 0.3-0.6%
+- CATHODE is the best performer above S/B = 0.25%
+- Below S/B = 0.25%, all anomaly detection methods fail to achieve 3σ significance
+- CATHODE saturates the idealized detector performance across the entire S/B range
 
 ## Task 1.3: Summarize the CATHODE Method
 
@@ -75,7 +81,7 @@
 | **Correlation sensitivity** | Robust to x-m correlations (uses SB to learn background) | Very sensitive to x-m correlations |
 | **Performance** | Max SIC ~14 | Max SIC ~11 |
 
-**Key insight**: By using a density estimator trained on the sideband, CATHODE avoids learning correlations between features x and mass m that would degrade CWoLa Hunting.
+**Key insight**: CATHODE is **expected to be** robust to correlations (by design, since the density estimator is trained in the SB where correlations are learned). This expectation is then **empirically validated** in Section IV.C, where CATHODE maintains good performance (~10 SIC) even with artificial correlations, while CWoLa Hunting completely breaks down.
 
 ### Difference from ANODE
 

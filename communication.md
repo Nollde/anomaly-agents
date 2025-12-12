@@ -58,3 +58,20 @@ Completed all three Stage 1 tasks (BSc level - 25 points):
 **Ready for Stage 2**: Data loading and visualization
 
 ---
+
+### Stage 1 Corrections
+
+**User Feedback**:
+- Corrected Task 1.2 interpretation of Figure 7 left:
+  - CATHODE maintains SIC > 10 for S/B ≳ 0.3% (not down to 0.25%)
+  - Below S/B ~ 0.25%, all methods fail to reach 3σ
+- Clarified correlation robustness statement:
+  - CATHODE is "expected to be" robust (by design), then empirically validated
+  - Not perfectly robust, but much better than CWoLa which breaks completely
+
+**AI Actions**:
+- Updated stage1_results.md with accurate figure readings
+- Clarified language about robustness claims
+- Ready to proceed to Stage 2
+
+---
