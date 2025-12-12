@@ -1,0 +1,61 @@
+================================================================================
+TASK 3.3: Training CATHODE Outer Density Estimator
+================================================================================
+
+Loading data from data/background.h5...
+Total events: 1,100,000
+  Background (label=0): 1,000,000
+  Signal (label=1): 100,000
+  Processed 1,000,000 events
+  mJJ range: [1.15, 9.33] TeV
+  Processed 100,000 events
+  mJJ range: [1.58, 6.59] TeV
+Sideband background events: 870,730
+Using 500,000 for training, 379,000 for validation
+
+Training set: 500,000 samples
+Validation set: 370,730 samples
+Feature dimension: 4
+
+GPU available: NVIDIA A100-SXM4-40GB
+GPU memory: 42.29 GB
+
+Creating MAF model...
+  Architecture: 15 MADE blocks, 128 hidden units
+  Batch normalization: momentum 1.0
+  Optimizer: Adam, lr=1e-4
+  Device: cuda
+
+Training for 10 epochs...
+
+Epoch  10/10: train_loss=4.9171, val_loss=5.1323
+
+Saving checkpoints...
+
+Best 10 epochs (by validation loss):
+  Rank 1: Epoch   9, val_loss=5.0319
+  Rank 2: Epoch   7, val_loss=5.0631
+  Rank 3: Epoch  10, val_loss=5.1323
+  Rank 4: Epoch   5, val_loss=5.1945
+  Rank 5: Epoch   6, val_loss=5.2013
+  Rank 6: Epoch   4, val_loss=5.2023
+  Rank 7: Epoch   3, val_loss=5.2191
+  Rank 8: Epoch   1, val_loss=5.2530
+  Rank 9: Epoch   8, val_loss=5.2741
+  Rank 10: Epoch   2, val_loss=5.3190
+
+Best model (epoch 9) saved to results/models/maf_best.pt
+  Final train loss: 4.9178
+  Final val loss: 5.0319
+
+Generating training history plot...
+Training plot saved to results/plots/maf_training_history.png
+
+================================================================================
+Verification
+================================================================================
+Paper reports loss around ~5.3
+Our best val loss: 5.0319
+✓ Loss is in expected range!
+
+Task 3.3 complete!
