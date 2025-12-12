@@ -285,3 +285,93 @@ class PreprocessFeatures(DataMixin, RegionMixin, law.Task):
         self.output().parent.touch()
         scaler.save(self.output().path)
         print(f"\nSaved scaler to {self.output().path}")
+
+
+class VisualizePreprocessing(DataMixin, RegionMixin, law.Task):
+    """
+    Verify feature preprocessing by visualizing before/after standardization.
+
+    Creates plots showing original and standardized feature distributions
+    to verify that features are properly normalized (mean≈0, std≈1).
+    """
+
+    def requires(self):
+        return PreprocessFeatures.req(self)
+
+    def output(self):
+        return law.LocalFileTarget("results/plots/preprocessing_verification.png")
+
+    def run(self):
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from src.data.loader import load_data, apply_region_cut, get_features
+        from src.data.preprocessing import FeatureScaler
+
+        # Load scaler
+        scaler = FeatureScaler.load(self.requires().output().path)
+        feature_names = scaler.feature_names_
+
+        # Load dataset
+        data_path = f"{self.data_dir}/background.h5"
+        bg_data, sig_data = load_data(data_path)
+
+        # Get sideband background data
+        bg_sb_mask = apply_region_cut(
+            bg_data, self.mjj_low, self.mjj_high, self.sr_low, self.sr_high, False
+        )
+        bg_sb = {key: val[bg_sb_mask] for key, val in bg_data.items()}
+
+        # Extract features
+        X_original = get_features(bg_sb, include_mass=False)
+        X_scaled = scaler.transform(X_original)
+
+        # Create comparison plots
+        fig, axes = plt.subplots(2, 4, figsize=(16, 8))
+        axes = axes.flatten()
+
+        for i, name in enumerate(feature_names):
+            # Original distribution
+            ax = axes[i]
+            ax.hist(X_original[:, i], bins=50, alpha=0.7, color="blue", density=True)
+            ax.set_xlabel(f"{name} (original)")
+            ax.set_ylabel("Density")
+            ax.set_title(f"Mean={X_original[:, i].mean():.2f}, Std={X_original[:, i].std():.2f}")
+            ax.grid(True, alpha=0.3)
+
+            # Standardized distribution
+            ax = axes[i + 4]
+            ax.hist(X_scaled[:, i], bins=50, alpha=0.7, color="green", density=True)
+            ax.set_xlabel(f"{name} (standardized)")
+            ax.set_ylabel("Density")
+            ax.set_title(f"Mean={X_scaled[:, i].mean():.2f}, Std={X_scaled[:, i].std():.2f}")
+            ax.grid(True, alpha=0.3)
+
+            # Add reference normal distribution
+            x_range = np.linspace(-4, 4, 100)
+            ax.plot(
+                x_range,
+                np.exp(-0.5 * x_range**2) / np.sqrt(2 * np.pi),
+                "r--",
+                alpha=0.5,
+                label="N(0,1)",
+            )
+            ax.legend()
+
+        plt.tight_layout()
+        self.output().parent.touch()
+        plt.savefig(self.output().path, dpi=150, bbox_inches="tight")
+        plt.close()
+        print(f"\nSaved preprocessing verification plot to {self.output().path}")
+
+        # Print statistics
+        print("\nPreprocessing verification:")
+        print("Original features (SB background):")
+        for i, name in enumerate(feature_names):
+            print(
+                f"  {name:12s}: mean={X_original[:, i].mean():8.3f}, std={X_original[:, i].std():8.3f}"
+            )
+        print("\nStandardized features (should be mean≈0, std≈1):")
+        for i, name in enumerate(feature_names):
+            print(
+                f"  {name:12s}: mean={X_scaled[:, i].mean():8.3f}, std={X_scaled[:, i].std():8.3f}"
+            )
