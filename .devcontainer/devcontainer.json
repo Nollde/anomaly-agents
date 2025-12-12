@@ -1,0 +1,6 @@
+{
+  "image": "docker.io/jobirk/anomaly-agents:latest",
+  "runArgs": [
+    "--gpu"
+  ]
+}
