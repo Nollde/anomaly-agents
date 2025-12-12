@@ -59,6 +59,46 @@ Completed all three Stage 1 tasks (BSc level - 25 points):
 
 ---
 
+### Stage 2 Progress: Data Loading and Visualization
+
+**User**: Requested to continue with plotting after data was manually downloaded.
+
+**AI Progress Update**:
+
+Completed Tasks 2.1 and 2.2 (BSc level):
+
+**Task 2.1** ✅: Data loading
+- Fixed signal file structure issue: Uses 'output' key instead of 'df'
+- Fixed mass point selection: Signal file has lowercase 'mx'/'my' columns
+- Selected mass point: mX=500 GeV, mY=100 GeV
+- Available mass points: mX ∈ [50, 600] GeV, mY ∈ [50, 750] GeV
+- Signal events: 77,575 total, 58,176 in SR [3.3, 3.7] TeV
+- Background events: 1.1M total, 196,651 in SR
+- Computed S/B ratio in SR: ~29.6% (higher than paper's 0.6% benchmark)
+
+**Task 2.2** ✅: Feature visualization
+- Created plotting utilities in [src/utils/plotting.py](src/utils/plotting.py)
+- Implemented VisualizeFeatures law task
+- Generated feature distribution plots comparing background and signal
+- Generated mJJ distribution with SR highlighted
+- Plots saved to [results/plots/](results/plots/)
+
+**Key Findings**:
+- Signal clearly separable in mJ1, delta_mJ, and tau21 features
+- High S/B ratio at chosen mass point will make detection easier
+- Feature distributions match expected physics patterns
+
+**Deliverables**:
+- Data loader with parametric mass point selection
+- Visualization utilities for feature comparisons
+- Feature distribution and mJJ plots
+
+**Committed**: Data loading and visualization implementation with proper formatting
+
+**Next**: Task 2.3 (Define and validate SR/SB regions) and Task 2.4 (Feature preprocessing)
+
+---
+
 ### Stage 1 Corrections
 
 **User Feedback**:
